@@ -1,0 +1,11 @@
+[package]
+name = "generate-uuids"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+uuid = { version = "0.8", features = ["v4"] }
+regex = "1"
+chrono = "0.4.19"
