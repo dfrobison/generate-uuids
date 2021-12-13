@@ -18,6 +18,10 @@ fn main() {
     let mut from_files_uuids: Vec<String> = Vec::new();
     let today = Utc::today().format("%Y_%m_%d");
     let args: Vec<String> = env::args().collect();
+    let camera_types: Vec<_> = vec!["hyrax", "bagheera", "hornet", "bumblebee", "coati"]
+        .into_iter()
+        .map(String::from)
+        .collect();
 
     if args.iter().count() < 4 {
         display_usage();
@@ -28,22 +32,19 @@ fn main() {
     let camera_type = &args[2];
     let camera_uuid_directory = Path::new(&args[3]);
 
-    match camera_type.as_str() {
-        "hyrax" | "bagheera" | "hornet" | "bumblebee" | "coati" => {
-            if !camera_uuid_directory.is_dir() {
-                println!("camera_uuids_directory is not valid or doesn't exist");
-                process::exit(1);
-            }
-
-            println!(
-                "Generating {} new UUIDs for {}",
-                number_of_uuids_to_generate, camera_type
-            );
-        }
-        _ => {
-            display_usage();
+    if camera_types.contains(camera_type) {
+        if !camera_uuid_directory.is_dir() {
+            println!("camera_uuids_directory is not valid or doesn't exist");
             process::exit(1);
         }
+
+        println!(
+            "Generating {} new UUIDs for {}",
+            number_of_uuids_to_generate, camera_type
+        );
+    } else {
+        display_usage();
+        process::exit(1);
     }
 
     // Generate initial UUIDs
@@ -63,8 +64,11 @@ fn main() {
     }
 
     // Create a vector of all the existing UUIDs that have been created.
-    let re = Regex::new(r"(?:hornet|bagheera|hyrax|bumblebee|coati).*txt").unwrap();
-    let files = fs::read_dir(camera_uuid_directory).expect("Can't find camera-uuids directory");
+
+    let camera_types_regex = camera_types.join("|");
+    let camera_regex = "(?:".to_owned() + &camera_types_regex + ").*txt";
+    let re = Regex::new(&camera_regex).unwrap();
+    let files = fs::read_dir(camera_uuid_directory).expect("Can't read camera_uuids_directory");
 
     files
         .filter_map(Result::ok)
