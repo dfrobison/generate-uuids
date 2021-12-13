@@ -10,32 +10,41 @@ use std::process;
 use uuid::Uuid;
 
 fn display_usage() {
-    println!("Usage: generate_uuids number_of_uuids [hyrax | bagheera | hornet | bumblebee | coati]");
+    println!("Usage: generate_uuids number_of_uuids hyrax|bagheera|hornet|bumblebee|coati camera_uuids_directory");
 }
 
 fn main() {
-    let mut new_uuids:Vec<String> = Vec::new();
-    let mut from_files_uuids:Vec<String> = Vec::new();
+    let mut new_uuids: Vec<String> = Vec::new();
+    let mut from_files_uuids: Vec<String> = Vec::new();
     let today = Utc::today().format("%Y_%m_%d");
     let args: Vec<String> = env::args().collect();
 
-    if args.iter().count() != 3 {
+    if args.iter().count() < 4 {
         display_usage();
         process::exit(1);
     }
 
     let number_of_uuids_to_generate: i32 = args[1].parse().expect("Need number_of_uuids");
     let camera_type = &args[2];
+    let camera_uuid_directory = Path::new(&args[3]);
 
     match camera_type.as_str() {
-        "hyrax" | 
-        "bagheera" | 
-        "hornet" | 
-        "bumblebee" | 
-        "coati" => {println!("Generating {} new UUIDs for {}", number_of_uuids_to_generate, camera_type);}
-        _ => {display_usage(); process::exit(1);}
-    }
+        "hyrax" | "bagheera" | "hornet" | "bumblebee" | "coati" => {
+            if !camera_uuid_directory.is_dir() {
+                println!("camera_uuids_directory is not valid or doesn't exist");
+                process::exit(1);
+            }
 
+            println!(
+                "Generating {} new UUIDs for {}",
+                number_of_uuids_to_generate, camera_type
+            );
+        }
+        _ => {
+            display_usage();
+            process::exit(1);
+        }
+    }
 
     // Generate initial UUIDs
     for _ in 1..=number_of_uuids_to_generate {
@@ -55,7 +64,7 @@ fn main() {
 
     // Create a vector of all the existing UUIDs that have been created.
     let re = Regex::new(r"(?:hornet|bagheera|hyrax|bumblebee|coati).*txt").unwrap();
-    let files = fs::read_dir("camera-uuids").unwrap();
+    let files = fs::read_dir(camera_uuid_directory).expect("Can't find camera-uuids directory");
 
     files
         .filter_map(Result::ok)
@@ -88,12 +97,13 @@ fn main() {
         process::exit(1);
     }
 
-    let new_file = camera_type.to_owned() + "_" + &today.to_string() + ".txt";
+    // Create the file to write new UUIDs and write them out
+    let new_camera_type_file = camera_type.to_string() + "_" + &today.to_string() + ".txt";
+    let new_uuid_file = camera_uuid_directory.join(new_camera_type_file);
+    let mut file = std::fs::File::create(new_uuid_file).expect("create of new UUID file failed");
 
-    // Write out the new UUIDs
-    let mut file = std::fs::File::create(new_file).expect("create failed");
     for i in &new_uuids {
-        write!(file, "{}\n", i).expect("failed writing");
+        write!(file, "{}\n", i).expect("failed writing new UUID");
     }
 }
 
