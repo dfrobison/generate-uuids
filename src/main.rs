@@ -102,7 +102,6 @@ fn main() {
     }
 
     // Create the file to write new UUIDs and write them out
-    println!("{}", today.to_string());
     let new_camera_type_file = format!("{}_{}.txt", camera_type, today);
     let new_uuid_file = camera_uuid_directory.join(new_camera_type_file);
     let mut file = std::fs::File::create(new_uuid_file).expect("create of new UUID file failed");
