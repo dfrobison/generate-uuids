@@ -16,7 +16,7 @@ fn display_usage() {
 fn main() {
     let mut new_uuids: Vec<String> = Vec::new();
     let mut from_files_uuids: Vec<String> = Vec::new();
-    let today = Utc::today().format("%Y_%m_%d");
+    let today = Local::today().format("%Y_%m_%d");
     let args: Vec<String> = env::args().collect();
     let camera_types: Vec<_> = vec!["hyrax", "bagheera", "hornet", "bumblebee", "coati"]
         .into_iter()
@@ -43,6 +43,7 @@ fn main() {
             number_of_uuids_to_generate, camera_type
         );
     } else {
+        println!("invalid camera_type");
         display_usage();
         process::exit(1);
     }
@@ -64,9 +65,8 @@ fn main() {
     }
 
     // Create a vector of all the existing UUIDs that have been created.
-
     let camera_types_regex = camera_types.join("|");
-    let camera_regex = "(?:".to_owned() + &camera_types_regex + ").*txt";
+    let camera_regex = format!("(?:{}).*txt", camera_types_regex);
     let re = Regex::new(&camera_regex).unwrap();
     let files = fs::read_dir(camera_uuid_directory).expect("Can't read camera_uuids_directory");
 
@@ -102,7 +102,8 @@ fn main() {
     }
 
     // Create the file to write new UUIDs and write them out
-    let new_camera_type_file = camera_type.to_string() + "_" + &today.to_string() + ".txt";
+    println!("{}", today.to_string());
+    let new_camera_type_file = format!("{}_{}.txt", camera_type, today);
     let new_uuid_file = camera_uuid_directory.join(new_camera_type_file);
     let mut file = std::fs::File::create(new_uuid_file).expect("create of new UUID file failed");
 
