@@ -7,10 +7,12 @@ use std::io::Write;
 use std::io::{self, BufRead};
 use std::path::Path;
 use std::process;
+use std::str::FromStr;
 use uuid::Uuid;
 
-fn display_usage() {
-    println!("Usage: generate_uuids number_of_uuids hyrax|bagheera|hornet|bumblebee|coati camera_uuids_directory");
+fn display_usage(e_messsage: &str) {
+    eprintln!("{}", e_messsage);
+    eprintln!("Usage: generate_uuids number_of_uuids hyrax|bagheera|hornet|bumblebee|coati camera_uuids_directory");
 }
 
 fn main() {
@@ -23,17 +25,17 @@ fn main() {
         .collect();
 
     if args.iter().count() < 4 {
-        display_usage();
+        display_usage("Not enough command line parameters");
         process::exit(1);
     }
 
-    let number_of_uuids_to_generate: usize = args[1].parse().expect("Need number_of_uuids");
+    let number_of_uuids_to_generate = usize::from_str(&args[1]).expect("Need number_of_uuids");
     let camera_type = &args[2];
     let camera_uuid_directory = Path::new(&args[3]);
 
     if camera_types.contains(camera_type) {
         if !camera_uuid_directory.is_dir() {
-            println!("camera_uuids_directory is not valid or doesn't exist");
+            display_usage("camera_uuids_directory is not valid or doesn't exist");
             process::exit(1);
         }
 
@@ -42,8 +44,7 @@ fn main() {
             number_of_uuids_to_generate, camera_type
         );
     } else {
-        println!("invalid camera_type");
-        display_usage();
+        display_usage("invalid camera_type");
         process::exit(1);
     }
 
