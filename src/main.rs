@@ -14,7 +14,6 @@ fn display_usage() {
 }
 
 fn main() {
-    let mut new_uuids: Vec<String> = Vec::new();
     let mut from_files_uuids: Vec<String> = Vec::new();
     let today = Local::today().format("%Y_%m_%d");
     let args: Vec<String> = env::args().collect();
@@ -28,7 +27,7 @@ fn main() {
         process::exit(1);
     }
 
-    let number_of_uuids_to_generate: i32 = args[1].parse().expect("Need number_of_uuids");
+    let number_of_uuids_to_generate: usize = args[1].parse().expect("Need number_of_uuids");
     let camera_type = &args[2];
     let camera_uuid_directory = Path::new(&args[3]);
 
@@ -47,6 +46,8 @@ fn main() {
         display_usage();
         process::exit(1);
     }
+
+    let mut new_uuids: Vec<String> = Vec::with_capacity(number_of_uuids_to_generate);
 
     // Generate initial UUIDs
     for _ in 1..=number_of_uuids_to_generate {
