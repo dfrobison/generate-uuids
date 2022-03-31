@@ -57,7 +57,7 @@ fn main() {
 
     let before_dedup_count = new_uuids.iter().count();
 
-    // Make sure that duplicate UUIDs have been generated
+    // Make sure that no duplicate UUIDs have been generated
     new_uuids.sort();
     new_uuids.dedup();
 
@@ -70,10 +70,15 @@ fn main() {
     let camera_types_regex = camera_types.join("|");
     let camera_regex = format!("(?:{}).*txt", camera_types_regex);
     let re = Regex::new(&camera_regex).unwrap();
-    let files = fs::read_dir(camera_uuid_directory).expect("Can't read camera_uuids_directory");
+    let mut files: Vec<_> = fs::read_dir(camera_uuid_directory)
+        .unwrap()
+        .filter_map(|r| r.ok())
+        .collect();
+
+    files.sort_by_key(|dir| dir.path());
 
     files
-        .filter_map(Result::ok)
+        .into_iter()
         .filter_map(|d| {
             d.path()
                 .to_str()
